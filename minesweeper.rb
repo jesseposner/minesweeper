@@ -5,6 +5,14 @@ class Game
     @board = Board.new(size, bombs)
   end
 
+  def play
+    until @board.game_over?
+      @board.render
+      @board.reveal(get_guess)
+    end
+    @board.won? ? (puts "You won!") : (puts "You lost!")
+  end
+
   def get_guess
     puts "What's your guess?"
     guess = parse_guess(gets.chomp)
@@ -12,6 +20,7 @@ class Game
       puts "What's your guess?"
       guess = parse_guess(gets.chomp)
     end
+    guess
   end
 
   def parse_guess(guess)
@@ -22,7 +31,6 @@ class Game
     guess.length == 2 &&
       guess.all? { |el| (0...@board.size).include?(el) }
   end
-
 end
 
 
@@ -30,6 +38,7 @@ class Board
   def initialize(size, bombs)
     @grid = Array.new(size) { Array.new(size) { Tile.new } }
     assign_bombs(bombs)
+    @game_state = nil
   end
 
   def assign_bombs(bombs)
@@ -48,11 +57,27 @@ class Board
   end
 
   def reveal(pos)
-    game_over if self[pos].bomb
+    lost if self[pos].bomb
   end
 
-  def game_over
+  def game_over?
+    loss? || won?
+  end
 
+  def lost
+    @game_state = :lost
+  end
+
+  def won
+    @game_state = :won
+  end
+
+  def lost?
+    @game_state == :lost
+  end
+
+  def won?
+    @game_state == :won
   end
 
   def size
